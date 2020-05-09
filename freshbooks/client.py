@@ -4,10 +4,9 @@ import json
 
 class Client(object):
 
-    def __init__(self, client_id, client_secret, redirect_uri, bearer_token=None, refresh_token=None):
+    def __init__(self, client_id, client_secret, bearer_token=None, refresh_token=None):
         self.client_id = client_id
         self.client_secret = client_secret
-        self.redirect_uri = redirect_uri
         self.base_url = "https://api.freshbooks.com"
         self.authorization_url = "https://my.freshbooks.com/service/auth/oauth/authorize"
         self.token_url = "https://api.freshbooks.com/auth/oauth/token"
@@ -36,6 +35,7 @@ class Client(object):
     def fetch_access_token(self, code):
         payload = self.token_payload('authorization_code', 'code', code)
         self.authenticate(self.token_url, payload)
+        return self.bearer_token, self.refresh_token
 
     def refresh_access_token(self):
         payload = self.token_payload('refresh_token', 'refresh_token', self.refresh_token)
