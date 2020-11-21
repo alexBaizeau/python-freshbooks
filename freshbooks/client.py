@@ -1,5 +1,6 @@
 import requests
 import json
+from freshbooks.model.identity import Identity
 
 
 class Client(object):
@@ -13,6 +14,13 @@ class Client(object):
         self.redirect_uri =  redirect_uri
         self.bearer_token = bearer_token
         self.refresh_token = refresh_token
+        self.current_user = None,
+        self.active_business_uuid = None,
+        self.active_business_id = None,
+        self.active_system_id = None,
+        self.actvie_account_id = None
+        self.active_role = None,
+
 
     @property
     def headers(self):
@@ -40,7 +48,7 @@ class Client(object):
 
     def refresh_access_token(self):
         payload = self.token_payload('refresh_token', 'refresh_token', self.refresh_token)
-        self.authenticate(self.token_url, payload)
+        return self.authenticate(self.token_url, payload)
 
     def authenticate(self, url, payload):
         response = self.post(url, payload)
@@ -59,5 +67,27 @@ class Client(object):
             verify=False
         ).json()
 
-    def get_current_user(self):
-        return self.get('/api/v1/users/me')
+    def load_current_user(self):
+        result = self.get('/auth/api/v1/users/me?exclude_groups=1')["response"]
+        self.current_user = Identity(self, result["id"], result["email"], result["first_name"], result["last_name"], result["business_memberships"], result["roles"])
+        return self.current_user
+
+
+    def set_active_business(self, business_uuid):
+        if not self.current_user:
+            self.load_current_user()
+        business_memberships = self.current_user.business_memberships
+        business_membership = next(bm for bm in business_memberships if bm["business"]["business_uuid"] == business_uuid)
+
+        roles = self.current_user.roles
+        active_role = next(role for role in roles if role["accountid"] == business_membership["business"]["account_id"])
+
+        self.active_role = active_role
+        self.active_business_id = business_membership["business"]["id"]
+        self.active_account_id = self.active_role["accountid"]
+        self.active_system_id = self.active_role["systemid"]
+        self.active_business_uuid = business_uuid
+
+    def get_currencies(self):
+        return self.get(f"/accounting/account/{self.active_account_id}/systems/currencies")
+
