@@ -56,8 +56,8 @@ class Client(object):
         self.refresh_token = response['refresh_token']
         return self.bearer_token, self.refresh_token
 
-    def get(self, url):
-        return requests.get(f'{self.base_url}{url}', headers=self.headers, verify=False).json()
+    def get(self, url, params={}):
+        return requests.get(f'{self.base_url}{url}', headers=self.headers, params=params, verify=False).json()
 
     def post(self, url, payload):
         return requests.post(
@@ -89,5 +89,8 @@ class Client(object):
         self.active_business_uuid = business_uuid
 
     def get_currencies(self):
-        return self.get(f"/accounting/account/{self.active_account_id}/systems/currencies")
+        return self.get(f"/accounting/account/{self.active_account_id}/systems/currencies")["response"]["result"]["currencies"]["currency_codes"]
+
+    def get_invoice_details_report(self, params={}):
+        return self.get(f"/accounting/account/{self.active_account_id}/reports/accounting/invoice_details", params)
 
