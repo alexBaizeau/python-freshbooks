@@ -2,7 +2,6 @@ import requests
 import json
 from freshbooks.model.identity import Identity
 
-
 class Client(object):
 
     def __init__(self, client_id, client_secret, redirect_uri, bearer_token=None, refresh_token=None):
@@ -72,7 +71,6 @@ class Client(object):
         self.current_user = Identity(self, result["id"], result["email"], result["first_name"], result["last_name"], result["business_memberships"], result["roles"])
         return self.current_user
 
-
     def set_active_business(self, business_uuid):
         if not self.current_user:
             self.load_current_user()
@@ -94,3 +92,8 @@ class Client(object):
     def get_invoice_details_report(self, params={}):
         return self.get(f"/accounting/account/{self.active_account_id}/reports/accounting/invoice_details", params)
 
+    def get_autocomplete_clients(self, params={}):
+        return self.get(f"/search/account/{self.active_account_id}/autocomplete_clients_v2", params)
+
+    def get_clients(self, params={}):
+        return self.get(f"/accounting/account/{self.active_account_id}/users/clients", params)
