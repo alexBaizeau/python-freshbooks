@@ -92,6 +92,9 @@ class Client(object):
     def get_invoice_details_report(self, params={}):
         return self.get(f"/accounting/account/{self.active_account_id}/reports/accounting/invoice_details", params)
 
+    def get_expense_report(self, params={}):
+        return self.get(f"/accounting/account/{self.active_account_id}/reports/accounting/expense_details", params)
+
     def get_autocomplete_clients(self, params={}):
         return self.get(f"/search/account/{self.active_account_id}/autocomplete_clients_v2", params)
 
