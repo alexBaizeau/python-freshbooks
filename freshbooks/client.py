@@ -1,8 +1,22 @@
 import json
+import sys
 
-import requests
+from authlib.common.urls import url_decode
+from authlib.integrations.requests_client import OAuth2Session
 
 from freshbooks.model.identity import Identity
+
+
+def build_auth_client_secret_freshbooks(redirect_uri):
+    def auth_client_secret_freshbooks(client, method, uri, headers, body):
+        body = dict(url_decode(body))
+        body["client_id"] = client.client_id
+        body["client_secret"] = client.client_secret
+        body["redirect_uri"] = redirect_uri
+        headers["Content-Type"] = "application/json"
+        return uri, headers, json.dumps(body)
+
+    return auth_client_secret_freshbooks
 
 
 class Client(object):
@@ -11,8 +25,8 @@ class Client(object):
         client_id,
         client_secret,
         redirect_uri,
-        bearer_token=None,
-        refresh_token=None,
+        update_token=None,
+        token=None,
     ):
         self.client_id = client_id
         self.client_secret = client_secret
@@ -20,10 +34,23 @@ class Client(object):
         self.authorization_url = (
             "https://my.freshbooks.com/service/auth/oauth/authorize"
         )
-        self.token_url = "https://api.freshbooks.com/auth/oauth/token"
+        self.token_endpoint = "https://api.freshbooks.com/auth/oauth/token"
+        self.update_token = update_token
         self.redirect_uri = redirect_uri
-        self.bearer_token = bearer_token
-        self.refresh_token = refresh_token
+        self.session = OAuth2Session(
+            client_id,
+            client_secret,
+            update_token=update_token,
+            token=token,
+            token_endpoint_auth_method="client_secret_freshbooks",
+        )
+        self.session.register_client_auth_method(
+            (
+                "client_secret_freshbooks",
+                build_auth_client_secret_freshbooks(redirect_uri),
+            )
+        )
+
         self.current_user = None
         self.active_business_uuid = None
         self.active_business_id = None
@@ -50,32 +77,21 @@ class Client(object):
         payload[secret_key] = secret_value
         return payload
 
-    def fetch_access_token(self, code):
-        payload = self.token_payload("authorization_code", "code", code)
-        self.authenticate(self.token_url, payload)
-        return self.bearer_token, self.refresh_token
+    def fetch_access_token(self, authorization_response):
+        return self.session.fetch_token(
+            self.token_endpoint, authorization_response=authorization_response
+        )
 
     def refresh_access_token(self):
-        payload = self.token_payload(
-            "refresh_token", "refresh_token", self.refresh_token
+        return self.session.refresh_token(
+            self.token_endpoint, refresh_token=self.refresh_token
         )
-        return self.authenticate(self.token_url, payload)
-
-    def authenticate(self, url, payload):
-        response = self.post(url, payload)
-        self.bearer_token = response["access_token"]
-        self.refresh_token = response["refresh_token"]
-        return self.bearer_token, self.refresh_token
 
     def get(self, url, params={}):
-        return requests.get(
-            f"{self.base_url}{url}", headers=self.headers, params=params, verify=False
-        ).json()
+        return self.session.get(f"{self.base_url}{url}", params=params).json()
 
     def post(self, url, payload):
-        return requests.post(
-            url, data=json.dumps(payload), headers=self.headers, verify=False
-        ).json()
+        return self.session.post(url, data=json.dumps(payload)).json()
 
     def load_current_user(self):
         result = self.get("/auth/api/v1/users/me?exclude_groups=1")["response"]
