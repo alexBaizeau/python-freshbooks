@@ -4,7 +4,7 @@ setup(
     name="python-freshbooks",
     author_email="alexandre.baizeau@gmail.com",
     license="MIT License",
-    version="0.5.5",
+    version="0.6.0",
     packages=find_packages(),
     install_requires=[
         "authlib",

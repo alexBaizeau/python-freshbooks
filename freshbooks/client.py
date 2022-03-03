@@ -1,9 +1,9 @@
 import json
-import sys
 
 from authlib.common.urls import url_decode
 from authlib.integrations.requests_client import OAuth2Session
 
+from freshbooks.exceptions import FreshBooksUnauthenticateddError
 from freshbooks.model.identity import Identity
 
 
@@ -88,10 +88,20 @@ class Client(object):
         )
 
     def get(self, url, params={}):
-        return self.session.get(f"{self.base_url}{url}", params=params).json()
+        response = self.session.get(f"{self.base_url}{url}", params=params)
+        self.handle_errors(response)
+        return response.json()
 
     def post(self, url, payload):
-        return self.session.post(url, data=json.dumps(payload)).json()
+        response = self.session.post(url, data=json.dumps(payload))
+        self.handle_errors(response)
+        return response.json()
+
+    def handle_errors(self, response):
+        if response.status_code == 401:
+            raise FreshBooksUnauthenticateddError()
+
+        response.raise_for_status()
 
     def load_current_user(self):
         result = self.get("/auth/api/v1/users/me?exclude_groups=1")["response"]
