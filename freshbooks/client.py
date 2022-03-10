@@ -43,6 +43,7 @@ class Client(object):
             update_token=update_token,
             token=token,
             token_endpoint_auth_method="client_secret_freshbooks",
+            token_endpoint=self.token_endpoint,
         )
         self.session.register_client_auth_method(
             (
