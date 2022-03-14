@@ -58,6 +58,7 @@ class Client(object):
         self.active_system_id = None
         self.actvie_account_id = None
         self.active_role = None
+        self.active_business_membership = None
 
     @property
     def headers(self):
@@ -135,6 +136,7 @@ class Client(object):
         )
 
         self.active_role = active_role
+        self.active_business_membership = business_membership
         self.active_business_id = business_membership["business"]["id"]
         self.active_account_id = self.active_role["accountid"]
         self.active_system_id = self.active_role["systemid"]
