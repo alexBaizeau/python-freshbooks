@@ -159,6 +159,12 @@ class Client(object):
             params,
         )
 
+    def get_profit_loss_report(self, params={}):
+        return self.get(
+            f"/accounting/account/{self.active_account_id}/reports/accounting/profitloss_entity",
+            params
+        )
+
     def get_autocomplete_clients(self, params={}):
         return self.get(
             f"/search/account/{self.active_account_id}/autocomplete_clients_v2", params
