@@ -165,6 +165,12 @@ class Client(object):
             params
         )
 
+    def get_balance_sheet_report(self, params={}):
+        return self.get(
+            f"/accounting/account/{self.active_account_id}/reports/accounting/ledger_entry_balance_sheet",
+            params
+        )
+
     def get_autocomplete_clients(self, params={}):
         return self.get(
             f"/search/account/{self.active_account_id}/autocomplete_clients_v2", params
