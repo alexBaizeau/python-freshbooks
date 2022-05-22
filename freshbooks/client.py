@@ -31,15 +31,6 @@ class Client(BaseClient):
         self.handle_errors(response)
         return response.json()
 
-    def handle_errors(self, response):
-        if response.status_code == 401:
-            raise FreshBooksUnauthenticatedError()
-
-        if response.status_code == 402:
-            raise FreshBooksPaymentRequiredError()
-
-        response.raise_for_status()
-
     def load_current_user(self):
         result = self.get("/auth/api/v1/users/me?exclude_groups=1")["response"]
         self.current_user = self.build_identity(result)
