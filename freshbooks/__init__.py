@@ -2,7 +2,7 @@ import json
 
 from authlib.common.urls import url_decode
 
-from freshbooks.exceptions import FreshBooksInactiveBusinessError, FreshBooksUnauthenticatedError
+from freshbooks.exceptions import FreshBooksPaymentRequiredError, FreshBooksUnauthenticatedError
 from freshbooks.model.identity import Identity
 
 
@@ -92,7 +92,7 @@ class BaseClient(object):
         if response.status_code == 401:
             raise FreshBooksUnauthenticatedError()
         if response.status_code == 402:
-            raise FreshBooksInactiveBusinessError()
+            raise FreshBooksPaymentRequiredError()
 
         response.raise_for_status()
 

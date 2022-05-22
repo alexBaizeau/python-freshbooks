@@ -3,7 +3,7 @@ import json
 from authlib.integrations.requests_client import OAuth2Session
 
 from freshbooks import BaseClient
-from freshbooks.exceptions import FreshBooksUnauthenticatedError, FreshBooksInactiveBusinessError
+from freshbooks.exceptions import FreshBooksUnauthenticatedError, FreshBooksPaymentRequiredError
 
 
 class Client(BaseClient):
@@ -36,7 +36,7 @@ class Client(BaseClient):
             raise FreshBooksUnauthenticatedError()
 
         if response.status_code == 402:
-            raise FreshBooksInactiveBusinessError()
+            raise FreshBooksPaymentRequiredError()
 
         response.raise_for_status()
 
