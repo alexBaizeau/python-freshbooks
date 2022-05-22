@@ -3,7 +3,7 @@ import json
 from authlib.integrations.requests_client import OAuth2Session
 
 from freshbooks import BaseClient
-from freshbooks.exceptions import FreshBooksUnauthenticateddError
+from freshbooks.exceptions import FreshBooksUnauthenticatedError, FreshBooksPaymentRequiredError
 
 
 class Client(BaseClient):
@@ -30,12 +30,6 @@ class Client(BaseClient):
         response = self.session.post(url, data=json.dumps(payload))
         self.handle_errors(response)
         return response.json()
-
-    def handle_errors(self, response):
-        if response.status_code == 401:
-            raise FreshBooksUnauthenticateddError()
-
-        response.raise_for_status()
 
     def load_current_user(self):
         result = self.get("/auth/api/v1/users/me?exclude_groups=1")["response"]
